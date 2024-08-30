@@ -5,6 +5,7 @@ mod config;
 mod endpoints;
 mod logger;
 mod models;
+mod middleware;  // Import the middleware module
 
 use crate::utils::{add_leaderboard_table, run_boosts_raffle};
 use axum::{http::StatusCode, Router};
@@ -89,7 +90,8 @@ async fn main() {
         .fold(Router::new().with_state(shared_state.clone()), |acc, r| {
             acc.merge(r.to_router(shared_state.clone()))
         })
-        .layer(cors);
+        .layer(cors)
+        .layer(axum::middleware::from_fn(auth_middleware));  // Apply the middleware here
 
     let addr = SocketAddr::from(([0, 0, 0, 0], conf.server.port));
     logger.info(format!(
